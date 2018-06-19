@@ -1,0 +1,305 @@
+<!--
+
+总结：
+总体思路:
+
+1. 用浏览器调试各图片的位置，得到相关数据（样式）jsonArr
+
+2. 用得到的样式渲染页  ====> 其中包含img图片的渲染
+
+3，自动播放功能  ==========>  将jsonArr样式值的顺序调整，重新渲染页面
+
+4. 左右侧按钮功能  ==========> 若点击过快会遇到图片混胡在一起，是因为上一个动画还没结束
+   解决方法： 利用动画回调函数功能为动画加上一把“锁”，如果动画没有执行完，即使点击按钮也不会
+   执行下一个动画
+
+ -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0px;
+      padding: 0px;
+      position: relative;
+    }
+
+    #box {
+      height: 550px;
+      width: 1000px;
+      padding-top: 50px;
+      margin: 0px auto;
+      background-color: none;
+    }
+
+    #box li {
+      display: block;
+      position: absolute;
+      cursor: pointer;
+    }
+
+    #box li img {
+      width: 100%;
+      height: 100%;
+    }
+
+    #ms,
+    #ys {
+      position: absolute;
+      top: 0px;
+      width: 120px;
+      height: 120px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #ms {
+      left: 10px;
+      background: url(../carousel_lol_js/images/ms.jpg) no-repeat;
+      background-size: contain;
+    }
+
+    #ys {
+      right: 10px;
+      background: url(../carousel_lol_js/images/ys.jpg) no-repeat;
+      background-size: contain;
+    }
+
+
+    /* img {
+      display: block;
+      position: absolute;
+    }
+
+    img:nth-child(1) {
+      width: 500px;
+      height: 320px;
+      left: 300px;
+      top: 220px;
+      opacity: 1;
+      z-index: 5
+    }
+
+    img:nth-child(2) {
+      width: 400px;
+      height: 250px;
+      left: 0px;
+      top: 140px;
+      opacity: 1;
+      z-index: 4
+    }
+
+    img:nth-child(3) {
+      width: 340px;
+      height: 200px;
+      left: 120px;
+      top: 60px;
+      opacity: 0.7;
+      z-index: 3
+    }
+
+    img:nth-child(4) {
+      width: 220px;
+      height: 150px;
+      left: 270px;
+      top: 0px;
+      opacity: 0.5;
+      z-index: 2
+    }
+
+    img:nth-child(5) {
+      width: 220px;
+      height: 100px;
+      left: 390px;
+      top: -30px;
+      opacity: 0.2;
+      z-index: 1
+    }
+
+    img:nth-child(6) {
+      width: 220px;
+      height: 150px;
+      right: 270px;
+      top: 0px;
+      opacity: 0.5;
+      z-index: 2
+    }
+
+    img:nth-child(7) {
+      width: 340px;
+      height: 200px;
+      right: 120px;
+      top: 60px;
+      opacity: 0.7;
+      z-index: 3
+    }
+
+    img:nth-child(8) {
+      width: 400px;
+      height: 250px;
+      right: 0px;
+      top: 140px;
+      opacity: 1;
+      z-index: 4
+    } */
+  </style>
+</head>
+
+<body>
+  <div id="box">
+    <span id="ms"></span>
+    <span id="ys"></span>
+  </div>
+
+  <script src="../carousel_lol_jq/jquery.js"></script>
+  <script>
+    $(function() {
+      // TODO: 定义需要的数据及变量
+      let jsonArr = [{
+        width: 500,
+        height: 320,
+        left: 300,
+        top: 220,
+        opacity: 1,
+        zIndex: 500
+      }, {
+        width: 400,
+        height: 250,
+        left: 0,
+        top: 140,
+        opacity: 1,
+        zIndex: 400
+      }, {
+        width: 340,
+        height: 200,
+        left: 100,
+        top: 60,
+        opacity: 0.8,
+        zIndex: 300
+      }, {
+        width: 220,
+        height: 150,
+        left: 270,
+        top: 0,
+        opacity: 0.6,
+        zIndex: 200
+      }, {
+        width: 220,
+        height: 100,
+        left: 390,
+        right: 390,
+        top: -30,
+        opacity: 0.2,
+        zIndex: 100
+      }, {
+        width: 220,
+        height: 150,
+        left: 510,
+        top: 0,
+        opacity: 0.6,
+        zIndex: 200
+      }, {
+        width: 340,
+        height: 200,
+        left: 560,
+        top: 60,
+        opacity: 0.8,
+        zIndex: 300
+      }, {
+        width: 400,
+        height: 250,
+        left: 600,
+        top: 140,
+        opacity: 1,
+        zIndex: 400
+      }]
+
+
+      // TODO: 生成总体结构
+      $('#box').append($('<ul id = "imgBox"></ul>'))
+
+      //循环遍历渲染页面
+      for (let i = 0; i < jsonArr.length; i++) {
+        let htmlStr = `<li><img src="../carousel_lol_js/images/${i+1}b.jpg" alt="" /></li>`
+        $('#imgBox').append(htmlStr)
+        $('li').eq(i).css(jsonArr[i])
+      }
+
+      // TODO: 自动播放功能，循环遍历li交换位置
+      let timeId = setInterval(function() {
+        //将数组最后一个的样式替换到最前面，得到新的数组
+        rightClick(800, 'linear')
+      }, 0)
+
+      //需要加一把锁，以确保上一次的运动以完成
+      let flag = true
+
+      function rightClick(speed, easing) {
+        if (flag) {
+          flag = false
+          jsonArr.push(jsonArr.shift())
+          //得到新的数组过后，利用动画进行位移
+          $('li').each(function(index) {
+            $(this).animate({
+              'zIndex': jsonArr[index]['zIndex']
+            }, 0, 'linear').animate(jsonArr[index], speed, easing, function() {
+              flag = true
+            })
+          })
+        }
+      }
+
+      function leftClick(speed, easing) {
+        if (flag) {
+          flag = false
+          jsonArr.unshift(jsonArr.pop())
+          //得到新的数组过后，利用动画进行位移
+          $('li').each(function(index) {
+            $(this).animate({
+              'zIndex': jsonArr[index]['zIndex']
+            }, 0, 'linear').animate(jsonArr[index], speed, easing, function() {
+              flag = true
+            })
+          })
+        }
+      }
+
+
+
+      // TODO: 当鼠标悬停在box上的时候，停止动画，并显示左右按钮，反之开始
+      $('#box').on('mouseenter', function() {
+        clearInterval(timeId)
+        $('#ms').stop().fadeIn(500)
+        $('#ys').stop().fadeIn(500)
+      })
+
+      $('#box').on('mouseleave', function() {
+        timeId = setInterval(function() {
+          rightClick(800, 'linear')
+        }, 0)
+
+        $('#ms').stop().fadeOut(500)
+        $('#ys').stop().fadeOut(500)
+      })
+
+      // TODO: 右侧点击功能
+      $('#ys').on('click', function() {
+        rightClick(500, 'swing')
+      })
+
+      // TODO: 左侧点击功能
+      $('#ms').on('click', function() {
+        leftClick(500, 'swing')
+      })
+    })
+  </script>
+</body>
+
+</html>

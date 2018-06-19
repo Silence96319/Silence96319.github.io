@@ -1,0 +1,118 @@
+* {
+  padding: 0px;
+  margin: 0px;
+  -moz-user-select: none;
+  /*火狐*/
+  -webkit-user-select: none;
+  /*webkit浏览器*/
+  -ms-user-select: none;
+  /*IE10*/
+  -khtml-user-select: none;
+  /*早期浏览器*/
+  user-select: none;
+}
+
+li {
+  list-style: none;
+  display: inline-block;
+}
+
+#box {
+  width: 602px;
+  height: 602px;
+  border: 1px solid rgba(3, 3, 3, .5);
+  margin: 20px auto;
+  padding: 10px;
+  box-shadow: 0px 0px 5px 5px rgba(3, 3, 3, .2);
+  position: relative;
+}
+
+#box>span {
+  position: absolute;
+  background-color: rgba(104, 173, 189, 0.8);
+}
+
+#box>span:nth-child(1) {
+  top: 0px;
+  right: 0px;
+  width: 10px;
+  height: 0px;
+}
+
+#box>span:nth-child(2) {
+  right: 0px;
+  bottom: 0px;
+  width: 0px;
+  height: 10px;
+}
+
+#box>span:nth-child(3) {
+  bottom: 0px;
+  left: 0px;
+  width: 10px;
+  height: 0px;
+}
+
+#box>span:nth-child(4) {
+  left: 0px;
+  top: 0px;
+  width: 0px;
+  height: 10px;
+}
+
+#main {
+  width: 600px;
+  height: 600px;
+  border: 1px solid rgba(3, 3, 3, .5);
+  white-space: nowrap;
+  font-size: 0px;
+}
+
+#big {
+  position: relative;
+  height: 480px;
+  overflow: hidden;
+  position: relative;
+}
+
+#bigBox {
+  width: 3600px;
+  position: absolute;
+  /* 为了获取到left */
+  left: 0px;
+  margin: 0px;
+}
+
+#big img {
+  width: 600px;
+  height: 480px;
+  display: block;
+}
+
+#small li {
+  opacity: 0.5;
+}
+
+#big span {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  background-color: rgba(0, 0, 0, .4);
+  top: 200px;
+  font-size: 38px;
+  color: rgba(255, 255, 255, .6);
+  line-height: 66px;
+  display: none;
+  cursor: pointer;
+}
+
+#fl {
+  left: -36px;
+  text-indent: 24px;
+}
+
+#big #fr {
+  right: -36px;
+  text-indent: 12px;
+}

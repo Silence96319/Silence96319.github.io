@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CarouselLOL</title>
+  <style>
+    * {
+      padding: 0px;
+      margin: 0px;
+      -moz-user-select: none;
+      /*火狐*/
+      -webkit-user-select: none;
+      /*webkit浏览器*/
+      -ms-user-select: none;
+      /*IE10*/
+      -khtml-user-select: none;
+      /*早期浏览器*/
+      user-select: none;
+    }
+
+    li {
+      list-style: none;
+      display: inline-block;
+    }
+
+    #box {
+      width: 602px;
+      height: 602px;
+      border: 1px solid rgba(3, 3, 3, .5);
+      margin: 20px auto;
+      padding: 10px;
+      box-shadow: 0px 0px 5px 5px rgba(3, 3, 3, .2);
+    }
+
+    #main {
+      width: 600px;
+      height: 600px;
+      border: 1px solid rgba(3, 3, 3, .5);
+      white-space: nowrap;
+      font-size: 0px;
+    }
+
+    #big {
+      position: relative;
+      height: 480px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #bigBox {
+      width: 3600px;
+      position: absolute;
+      /* 为了获取到left */
+      left: 0px;
+      margin: 0px;
+    }
+
+    #big img {
+      width: 600px;
+      height: 480px;
+    }
+
+    #small li {
+      opacity: 0.5;
+    }
+
+    #big span {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 36px;
+      background-color: rgba(0, 0, 0, .4);
+      top: 200px;
+      font-size: 38px;
+      color: rgba(255, 255, 255, .6);
+      line-height: 66px;
+      display: none;
+      cursor: pointer;
+    }
+
+    #fl {
+      left: -36px;
+      text-indent: 24px;
+    }
+
+    #big #fr {
+      right: -36px;
+      text-indent: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="box">
+    <div id="main">
+      <div id="big">
+        <ul id="bigBox">
+          <li><a href="javascript:;"><img src="images/1b.jpg" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/2b.jpg" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/3b.jpg" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/4b.jpg" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/5b.jpg" alt="Can not found it~"></a></li>
+        </ul>
+        <span id="fl">《</span>
+        <span id="fr">》</span>
+      </div>
+      <div id="small">
+        <ul id="smallBox">
+          <li style="opacity: 1;"><a href="javascript:;"><img src="images/1s.png" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/2s.png" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/3s.png" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/4s.png" alt="Can not found it~"></a></li>
+          <li><a href="javascript:;"><img src="images/5s.png" alt="Can not found it~"></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    //获取id
+    function my$(id) {
+      return document.getElementById(id)
+    }
+
+    //获取属性------------>兼容问题
+    function getStyle(element, attr) {
+      return window.getComputedStyle ? window.getComputedStyle(element, null)[attr] : element.currentStyle[attr] || 0
+    }
+
+    //动画函数,其中json中的属性通过getStyle函数获得
+    function animate(element, json, steptime, callback) {
+      clearInterval(element.timeId) //只能清除自身的动画效果
+      element.timeId = setInterval(function() {
+        let flag = true
+        for (let key in json) {
+          //该属性为透明度
+          if (key == 'opacity') {
+            let current = getStyle(element, key) * 100
+            let target = json[key] * 100
+            let diff = (target - current) / 10
+            let step = diff > 0 ? Math.ceil(diff) : Math.floor(diff)
+            current += step
+            element.style[key] = current / 100
+            if (current !== target) {
+              flag = false
+            }
+          }
+
+          //该属性为zIndex
+          else if (key === 'zIndex') {
+            element.style.zIndex = json[key]
+          }
+
+          //该属性为坐标值
+          else {
+            let current = parseInt(getStyle(element, key)) //注意获取值无单位
+            //  console.log(current);
+            let target = json[key]
+            let diff = (target - current) / 10
+            let step = diff > 0 ? Math.ceil(diff) : Math.floor(diff)
+            current += step
+            element.style[key] = current + 'px'
+            if (current !== target) {
+              flag = false
+            }
+          }
+        }
+        if (flag) {
+          clearInterval(element.timeId)
+          if (callback) {
+            callback()
+          }
+        }
+      }, steptime)
+    }
+
+    //自动播放以及右侧按钮点击运动函数
+    function imgMove() {
+      if (pic === 5) {
+        pic = 0
+        bigBox.style.left = 0 + 'px'
+      }
+      pic++
+      moveOne()
+    }
+
+    //左侧按钮点击运动函数
+    function leftMove() {
+      if (pic === 0) {
+        pic = 5
+        bigBox.style.left = -pic * imgWidth + 'px'
+      }
+      pic--
+      moveOne()
+    }
+
+    //为自动播放以及左右侧按钮的图片封装一个单步运动函数
+    function moveOne() {
+      animate(bigBox, {
+        left: -pic * imgWidth
+      }, 16)
+      for (let j = 0; j < smallList.length; j++) {
+        smallList[j].style.opacity = 0.5
+        if (smallList[j].timeId) {
+          clearInterval(smallList[j].timeId) //清除其它li的动画
+        }
+        if (pic === 5) {
+          animate(smallList[0], {
+            opacity: 1
+          }, 30)
+        } else {
+          animate(smallList[pic], {
+            opacity: 1
+          }, 30)
+        }
+      }
+    }
+
+    let main = my$('main')
+
+    //大图片区域
+    let big = my$('big')
+    let bigBox = my$('bigBox')
+    let bigList = bigBox.getElementsByTagName('li')
+    let bigImg = bigBox.getElementsByTagName('img')
+    let fl = my$('fl')
+    let fr = my$('fr')
+
+    //小图片区域
+    let smallBox = my$('smallBox')
+    let smallList = smallBox.getElementsByTagName('li')
+
+
+    //全局变量
+    let imgWidth = bigImg[0].offsetWidth
+    let pic = 0
+
+    //将大图片区域第一张图片复制到最后
+    bigBox.appendChild(bigBox.children[0].cloneNode(true))
+
+    //小头像控制大图片
+    for (let i = 0; i < smallList.length; i++) {
+      smallList[i].onmouseover = function() {
+        //排他功能
+        for (let j = 0; j < smallList.length; j++) {
+          if (smallList[j].timeId) {
+            clearInterval(smallList[j].timeId) //清除其它li的动画
+          }
+          smallList[j].style.opacity = 0.5
+        }
+        animate(this, {
+          opacity: 1
+        }, 30)
+        pic = i
+        let target = -imgWidth * pic //offset系列取值不用加style，值没有单位
+        animate(bigBox, {
+          left: target
+        }, 16)
+      }
+    }
+
+    //大图片自动播放
+    let timeId = setInterval(imgMove, 1500)
+
+    //当鼠标进入大图片区域的时候两侧边按钮显示，反之隐藏
+    big.onmouseover = function() {
+      fl.style.display = 'block';
+      fr.style.display = 'block';
+    }
+    big.onmouseout = function() {
+      fl.style.display = 'none';
+      fr.style.display = 'none';
+    }
+
+    //为左侧按钮注册点击事件
+    fl.onclick = function() {
+      leftMove();
+    }
+
+    //为右侧按钮注册点击事件
+    fr.onclick = function() {
+      imgMove();
+    }
+
+    //当鼠标进入main区域时时停止运动，当鼠标移出时继续运动
+    main.onmouseover = function() {
+      clearInterval(timeId)
+    }
+    main.onmouseout = function() {
+      timeId = setInterval(imgMove, 1200)
+    }
+  </script>
+</body>
+
+</html>

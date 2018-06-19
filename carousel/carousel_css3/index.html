@@ -1,0 +1,229 @@
+<!--
+总结
+====>======>=====>
+思路
+1. 将4张图分隔成5部分即5个li
+2. 每个li里面是4张图的不同部分，最终拼凑成完整的4张图
+3. 将在每一个li中的4个span样式设置成一个块状
+4, 当左右点击的时候，4个li旋转（延时不同）
+
+注意细节：
+1、设置li里面样式时 li span:nth-child(n) 是指每个li的第n个span ====> 而不是取得所有li中的所有span再来计算是第多少个
+2、background-size: cover/contain/auto
+3、在3D旋转中，坐标轴也会跟着旋转！！！ ====> 所以translate 是相对于 rotate后的平面而言的
+4、旋转时的3D效果： perspective: 500px;  或者是 transform-style: perspective
+
+5、左右侧点击时，li的运动时间不是一起的需要用 transtion-delay 来设置
+6、设置节流阀时，需要用到 transtionend 事件 ！！！！
+7、触发点击事件：element.click()或者element.trigger('click')
+  -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>carousel_css</title>
+  <style>
+    * {
+      margin: 0px;
+      padding: 0px;
+      user-select: none;
+    }
+
+    section {
+      margin: 150px auto;
+      width: 500px;
+      height: 300px;
+      font-size: 0;
+      position: relative;
+      cursor: pointer;
+    }
+
+    li {
+      list-style: none;
+      display: inline-block;
+      width: 100px;
+      height: 300px;
+      position: relative;
+      /* perspective: 500px; */
+      transform-style: preserve-3d;
+      transition: all 0.7s;
+    }
+
+    li span {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0px;
+      top: 0px;
+    }
+
+    li span:nth-child(1) {
+      background: url(../carousel_lol_js/images/1b.jpg) no-repeat;
+      background-size: cover;
+      transform: translateZ(150px);
+    }
+
+    li span:nth-child(2) {
+      background: url(../carousel_lol_js/images/2b.jpg) no-repeat;
+      background-size: cover;
+      transform: rotateX(90deg) translateZ(150px);
+    }
+
+    li span:nth-child(3) {
+      background: url(../carousel_lol_js/images/3b.jpg) no-repeat;
+      background-size: cover;
+      transform: rotateX(180deg) translateZ(150px);
+    }
+
+    li span:nth-child(4) {
+      background: url(../carousel_lol_js/images/4b.jpg) no-repeat;
+      background-size: cover;
+      transform: rotateX(270deg) translateZ(150px);
+    }
+
+    li:nth-child(1) span {
+      background-position: 0 0;
+    }
+
+    li:nth-child(2) span {
+      background-position: -100px 0;
+    }
+
+    li:nth-child(3) span {
+      background-position: -200px 0;
+    }
+
+    li:nth-child(4) span {
+      background-position: -300px 0;
+    }
+
+    li:nth-child(5) span {
+      background-position: -400px 0;
+    }
+
+    #left,
+    #right {
+      position: absolute;
+      background-color: rgba(0, 0, 0, .3);
+      top: 120px;
+      right: 0px;
+      width: 40px;
+      height: 60px;
+      font-size: 50px;
+      color: #fff;
+      text-align: center;
+      line-height: 50px;
+      display: none;
+    }
+
+    #left {
+      left: 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <section>
+    <ul>
+      <li>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </li>
+      <li>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </li>
+      <li>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </li>
+      <li>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </li>
+      <li>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </li>
+    </ul>
+    <span id="left">&lt;</span>
+    <span id="right">&gt;</span>
+  </section>
+
+  <script src="../carousel_lol_jq/jquery.js"></script>
+  <script>
+    $(function() {
+      let index = 0
+      let flag = true
+
+      //右侧点击
+      $('#left').on('click', function() {
+        if (!flag) return
+        flag = false
+        index--
+        let angle = -index * 90
+        $('li').css({
+          'transform': 'rotateX(' + angle + 'deg)'
+        }).each(function(i) {
+          //每个li的延时不同
+          $(this).css('transition-delay', i * 0.25 + 's')
+        })
+      })
+
+      //右侧点击
+      $('#right').on('click', function() {
+        if (!flag) return
+        flag = false
+        index++
+        let angle = -index * 90
+        $('li').css({
+          'transform': 'rotateX(' + angle + 'deg)'
+        }).each(function(i) {
+          $(this).css('transition-delay', i * 0.25 + 's')
+        })
+      })
+
+      //节流阀
+      $('li:last').on('transitionend', function() {
+        flag = true
+      })
+
+
+      //自动播放
+      let timeId = setInterval(function() {
+        $('#right').click()
+      }, 1300)
+
+      $('section').on('mouseenter', function() {
+        clearInterval(timeId)
+        $('#right,#left').css('display', 'block')
+      })
+
+      $('section').on('mouseleave', function() {
+        timeId = setInterval(function() {
+          $('#right').trigger('click')
+        }, 1300)
+        $('#right,#left').css('display', 'none')
+      })
+
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    #box {
+      height: 550px;
+      width: 1000px;
+      padding-top: 50px;
+      margin: 50px auto;
+      background-color: none;
+      position: relative;
+      /* 小图片和li元素的父亲位置 */
+    }
+
+    #box li {
+      display: block;
+      position: absolute;
+      cursor: pointer;
+    }
+
+    #box li img {
+      width: 100%;
+      height: 100%;
+    }
+
+    #ms,
+    #ys {
+      position: absolute;
+      top: -50px;
+      width: 120px;
+      height: 120px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #ms {
+      left: 10px;
+      background: url(../carousel_lol_js/images/ms.jpg) no-repeat;
+      background-size: contain;
+    }
+
+    #ys {
+      right: 10px;
+      background: url(../carousel_lol_js/images/ys.jpg) no-repeat;
+      background-size: contain;
+    }
+
+    #start {
+      position: absolute;
+      font-size: 50px;
+      font-weight: 700;
+      width: 700px;
+      height: 80px;
+      color: #ccc;
+      bottom: -80px;
+      right: -220px;
+      background-color: aqua;
+      line-height: 80px;
+      text-align: center;
+      border: 5px dashed #fff;
+      border-radius: 15px;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    #box>img {
+      /* 为刚开始时右下角小图片的样式 */
+      width: 0px;
+      height: 0px;
+      position: absolute;
+      bottom: -80px;
+      right: -220px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="box">
+    <span id="ms"></span>
+    <span id="ys"></span>
+    <div id="start">
+      Welcome to JavaScript !
+    </div>
+  </div>
+
+  <script src="../carousel_lol_jq/jquery.js"></script>
+  <script>
+    $(function() {
+      // 定义需要的数据及变量
+      //初始数据------做轮播时各个li元素的样式
+      let jsonArr = [{
+        width: 500,
+        height: 320,
+        left: 300,
+        top: 220,
+        opacity: 1,
+        zIndex: 500
+      }, {
+        width: 400,
+        height: 250,
+        left: 0,
+        top: 140,
+        opacity: 1,
+        zIndex: 400
+      }, {
+        width: 340,
+        height: 200,
+        left: 100,
+        top: 60,
+        opacity: 0.8,
+        zIndex: 300
+      }, {
+        width: 220,
+        height: 150,
+        left: 270,
+        top: 0,
+        opacity: 0.6,
+        zIndex: 200
+      }, {
+        width: 220,
+        height: 100,
+        left: 390,
+        right: 390,
+        top: -30,
+        opacity: 0.2,
+        zIndex: 100
+      }, {
+        width: 220,
+        height: 150,
+        left: 510,
+        top: 0,
+        opacity: 0.6,
+        zIndex: 200
+      }, {
+        width: 340,
+        height: 200,
+        left: 560,
+        top: 60,
+        opacity: 0.8,
+        zIndex: 300
+      }, {
+        width: 400,
+        height: 250,
+        left: 600,
+        top: 140,
+        opacity: 1,
+        zIndex: 400
+      }]
+
+      //重新创建一个与jsonArr的数组，以便在下面修改时将原数组修改
+      let newJsonArr = Array.from(jsonArr)
+
+      //====================================================
+
+      //当start被点击的时候，它自身消失，然后图片开始像内部运动
+      $('#start').on('click', function() {
+        $(this).animate({
+          'width': 0,
+          'height': 0
+        }, 1000, 'swing', imgMove)
+      })
+
+      //=================================================================
+      //生成小图片结构
+      function imgMove() {
+        //清空该元素
+        $(this).remove()
+
+        for (var i = 0; i < jsonArr.length; i++) {
+          let str = `<img src="../carousel_lol_js/images/${i+1}b.jpg" alt="" />`
+          //注意这个位置是附加到box，不然到时候得到的数据是相对于start的
+          $('#box').append(str)
+
+          //设置样式的层级，以便小图片按顺序显示，并且该层级高于大图片的第一个位置
+          $('#box img').eq(i).css('zIndex', i + 900)
+        }
+
+        //小图片变大
+        $('#box img').animate({
+          'width': 90,
+          'height': 56
+        }, 1500, 'swing')
+
+        //由于小图片变大具有一定的时间，设置定时器也需要等一段时间，所以在这个位置设置定时器，而不是用回调函数
+        //使得等待的时间减少
+        smallToBig()
+      }
+
+      //=================================================================
+
+      //小图片变大后开始向大图片移动
+      function smallToBig() {
+        // 设置定时器，每隔一段时间向大图片位置发送一张小图片
+        let j = 8
+        let timeId = setInterval(function() {
+          if (j === 0) {
+            clearInterval(timeId)
+          }
+          j--
+          //都发送到大图片的第一个位置
+          $('#box>img').eq(j).animate(newJsonArr[0], 1200, 'swing', bigImgMove)
+        }, 1200)
+
+        //此时可以准备生成旋转用的空结构了
+        makeList()
+      }
+
+      //=================================================================
+
+      // TODO: 生成一个不具有图片的‘旋转’结构
+      function makeList() {
+        $('#box').append($('<ul id = "imgBox"></ul>'))
+        for (let i = 0; i < jsonArr.length; i++) {
+          let htmlStr = `<li><img src="" alt="" /></li>`
+          $('#imgBox').append(htmlStr)
+          $('li').eq(i).css(jsonArr[i])
+        }
+      }
+
+      //=================================================================
+
+      //大图片接收到小图片并开始运动
+      let k = 1
+
+      function bigImgMove() {
+        if (k < 9) {
+          //将传过来的图片的路径赋值给大图片的路径
+          //由于第一张发过来的是最后一张图片，所以需要区别对待。。
+          if (k == 1) {
+            $('#imgBox img').eq(k - 1).attr('src', '../carousel_lol_js/images/' + (9 - k) + 'b.jpg')
+          } else {
+            $('#imgBox img').eq(9 - k).attr('src', '../carousel_lol_js/images/' + (9 - k) + 'b.jpg')
+          }
+
+          //得到小图片的路径后之后就可以将原有的小图片给删除掉了
+          $('#box > img').eq(8 - k).remove()
+
+          //该判断时为了使最后一张图片上去的时候就不移动了
+          if (k < 8) {
+            //隔一段时间旋转一次
+            setTimeout(function() {
+              rightClickSimple(350, 'swing')
+            }, 150)
+          }
+
+          k++
+
+          //当旋转完一轮后，快速的再循环一轮
+          if (k === 9) {
+            setTimeout(function() {
+              let n = 1
+              let timeId1 = setInterval(function() {
+                if (n < 9) {
+                  rightClickSimple(200, 'linear')
+                  n++
+                } else {
+                  clearInterval(timeId1)
+
+
+                  //================================================
+                  //清除完定时器后就开始自动播放功能了，借鉴之前的代码
+                  //以下均为之前的自动播放结构
+
+                  // 自动播放功能，循环遍历li交换位置
+                  let timeId = setInterval(function() {
+                    //将数组最后一个的样式替换到最前面，得到新的数组
+                    rightClick(500, 'swing')
+                  }, 500)
+
+                  //需要加一把锁，以确保上一次的运动以完成
+                  let flag = true
+
+                  function rightClick(speed, easing) {
+                    if (flag) {
+                      flag = false
+                      jsonArr.push(jsonArr.shift())
+                      //得到新的数组过后，利用动画进行位移
+                      $('li').each(function(index) {
+                        $(this).css('zIndex', jsonArr[index]['zIndex']).animate(jsonArr[index], speed, easing, function() {
+                          flag = true
+                        })
+                      })
+                    }
+                  }
+
+                  function leftClick(speed, easing) {
+                    if (flag) {
+                      flag = false
+                      jsonArr.unshift(jsonArr.pop())
+                      //得到新的数组过后，利用动画进行位移
+                      $('li').each(function(index) {
+                        $(this).css({
+                          'zIndex': jsonArr[index]['zIndex']
+                        }).animate(jsonArr[index], speed, easing, function() {
+                          flag = true
+                        })
+                      })
+                    }
+                  }
+
+
+
+                  // TODO: 当鼠标悬停在box上的时候，停止动画，并显示左右按钮，反之开始
+                  $('#box').on('mouseenter', function() { //这里最好使用enter,避免子元素事件冒泡
+                    clearInterval(timeId)
+                    $('#ms').stop().fadeIn(500)
+                    $('#ys').stop().fadeIn(500)
+                  })
+
+                  $('#box').on('mouseleave', function() {
+                    timeId = setInterval(function() {
+                      rightClick(500, 'linear')
+                    }, 500)
+
+                    $('#ms').stop().fadeOut(500)
+                    $('#ys').stop().fadeOut(500)
+                  })
+
+                  // TODO: 右侧点击功能
+                  $('#ys').on('click', function() {
+                    rightClick(200, 'swing')
+                  })
+
+                  // TODO: 左侧点击功能
+                  $('#ms').on('click', function() {
+                    leftClick(200, 'swing')
+                  })
+
+                  //以上均为之前的结构
+                  //===========================================
+
+
+                }
+              }, 200)
+            }, 1000)
+          }
+        }
+      }
+
+      // =============================================
+      //该函数为刚开始接收小图片用得简单的旋转过程，不设置锁
+      function rightClickSimple(speed, easing) {
+        jsonArr.push(jsonArr.shift())
+        //得到新的数组过后，利用动画进行位移
+        $('#imgBox>li').each(function(index) {
+          //.css('zIndex', jsonArr[index]['zIndex'])是由于之前多次调用了函数导致这个无法执行，现已解决
+          $(this).css('zIndex', jsonArr[index]['zIndex']).animate(jsonArr[index], speed, easing)
+        })
+      }
+
+    })
+  </script>
+</body>
+
+</html>
