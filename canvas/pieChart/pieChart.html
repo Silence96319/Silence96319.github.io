@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>饼状图（面向对象）</title>
+</head>
+
+<body>
+  <canvas width="800" height="500" style="border: 1px solid #aaa"></canvas>
+
+
+  <script>
+    //构造函数=====================================
+    let PieChart = function(pieX, pieY, pieR, lineLength, spaceX, spaceY, rectW, rectH, ctx) {
+      //工具箱
+      this.ctx = ctx || document.querySelector('canvas').getContext('2d')
+
+      //饼状图原点位置(带偏移量)
+      this.pieX = this.ctx.canvas.width / 2 + pieX
+      this.pieY = this.ctx.canvas.height / 2 + pieY
+      //饼状图半径
+      this.pieR = pieR
+
+      //伸出去线的长度
+      this.lineLength = lineLength
+
+      //矩形说明区左边间隔
+      this.spaceX = spaceX
+      //矩形上下右间隔
+      this.spaceY = spaceY
+      //矩形宽
+      this.rectW = rectW
+      //矩形高
+      this.rectH = rectH
+    }
+
+    //原型方法=====================================
+    //初始化
+    PieChart.prototype.init = function(data) {
+      //1.将数据转化成弧度
+      let dataRadian = this.transformRadian(data)
+
+      //2.绘制成饼状图
+      this.drawPieChart(dataRadian)
+
+      //3.绘制伸出去的线
+      //this.drawLine(dataRadian)===>为了节省循环次数，在画饼状图的时候调用该函数
+
+      //4.绘制数据说明的矩形区域
+      //this.drawRect()===> 同上
+    }
+
+    //将数据转换成弧度
+    PieChart.prototype.transformRadian = function(data) {
+      //定义变量
+      let totalPerson = 0
+
+      //先计算总和
+      data.forEach((item, i) => {
+        totalPerson += item.num
+      })
+
+      //再转换成弧度
+      data.forEach((item, i) => {
+        item.radian = item.num / totalPerson * Math.PI * 2
+      })
+
+      //放回处理后的数据
+      return data
+    }
+
+    //绘制饼状图
+    PieChart.prototype.drawPieChart = function(data) {
+      //定义变量
+      let startRadian = 0
+
+      //画饼状图
+      data.forEach((item, i) => {
+        this.ctx.beginPath()
+        this.ctx.moveTo(this.pieX, this.pieY)
+        let endRadian = startRadian + item.radian
+        this.ctx.arc(this.pieX, this.pieY, this.pieR, startRadian, endRadian)
+        //为不同部分的图设置不同的颜色
+        this.ctx.fillStyle = this.getColor()
+        this.ctx.fill()
+
+        //画伸出去的线以及相关描述内容
+        this.drawLine(item, startRadian, this.ctx.fillStyle)
+
+        //画矩形的说明区
+        this.drawRect(item, i, this.ctx.fillStyle)
+
+        startRadian = endRadian
+      })
+    }
+
+    //获取不同的颜色
+    PieChart.prototype.getColor = function() {
+      let r = Math.floor(Math.random() * 256)
+      let g = Math.floor(Math.random() * 256)
+      let b = Math.floor(Math.random() * 256)
+      return 'rgb(' + r + ',' + g + ',' + b + ')'
+    }
+
+    //画伸出去的线以及相关描述内容
+    PieChart.prototype.drawLine = function(item, startRadian, color) {
+      //线的颜色
+      this.ctx.strokeStyle = color
+
+      //线的终点位置
+      let lineEndX = this.pieX + (this.pieR + this.lineLength) * Math.cos(startRadian + item.radian / 2)
+      let lineEndY = this.pieY + (this.pieR + this.lineLength) * Math.sin(startRadian + item.radian / 2)
+
+      //画伸出的线
+      this.ctx.beginPath()
+      this.ctx.moveTo(this.pieX, this.pieY)
+      this.ctx.lineTo(lineEndX, lineEndY)
+
+      //横线的宽度===画横线 以及内容
+      //注意此处获取宽度的时候需要先设置字体大小
+      this.ctx.font = "14px Microsoft YaHei"
+      let textWidth = this.ctx.measureText(item.title).width
+
+      if (lineEndX > this.pieX) {
+        this.ctx.lineTo(lineEndX + textWidth, lineEndY)
+        this.ctx.textAlign = 'left'
+      } else {
+        this.ctx.lineTo(lineEndX - textWidth, lineEndY)
+        this.ctx.textAlign = 'right'
+      }
+
+      //设置项都要在最终的描绘之前进行
+      this.ctx.textBaseline = 'bottom'
+      this.ctx.fillText(item.title, lineEndX, lineEndY)
+
+      this.ctx.stroke()
+    }
+
+    //画矩形的说明区
+    PieChart.prototype.drawRect = function(item, i, color) {
+      //画矩形
+      this.strokeStyle = color
+      this.ctx.fillRect(this.spaceX, this.spaceY + (this.spaceY + this.rectH) * i, this.rectW, this.rectH)
+
+      //说明文字
+      this.ctx.font = "12px Microsoft YaHei"
+      this.ctx.textAlign = 'left'
+      this.ctx.textBaseline = 'top'
+      this.ctx.fillText(item.title, this.spaceX + this.rectW + this.spaceY, this.spaceY + (this.spaceY + this.rectH) * i)
+    }
+
+    //初始化数据======================================
+    let data = [{
+        'title': '不及格(0~59)',
+        'num': 40
+      },
+      {
+        'title': '中等(60~79)',
+        'num': 210
+      },
+      {
+        'title': '良好(80~89)',
+        'num': 140
+      },
+      {
+        'title': '优秀(90~100)',
+        'num': 80
+      }
+    ]
+
+    //实例化对象======================================
+    let pieChart = new PieChart(60, 10, 150, 30, 20, 15, 30, 18)
+    pieChart.init(data)
+  </script>
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

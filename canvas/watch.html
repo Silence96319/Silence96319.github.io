@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>时钟</title>
+</head>
+
+<body>
+  <canvas width="600" height="400" style="background-color: #555;"></canvas>
+  <script>
+    let Watch = function(x0, y0, radian, ctx) {
+      this.ctx = ctx || document.querySelector('canvas').getContext('2d')
+
+      //圆心坐标及圆半径
+      this.x0 = x0
+      this.y0 = y0
+      this.radian = radian
+      this.init()
+    }
+
+    Watch.prototype.init = function() {
+      this.drawFace()
+      this.drawNums()
+      setInterval(() => {
+        this.drawTime()
+      }, 1000)
+    }
+
+    Watch.prototype.drawFace = function() {
+      //换一个圆的背景
+      this.ctx.translate(this.x0, this.y0)
+      this.ctx.arc(0, 0, this.radian, 0, 2 * Math.PI)
+      this.ctx.fillStyle = '#fff'
+      this.ctx.fill()
+
+      //画圆的边框
+      // this.ctx.beginPath()
+      let grad = this.ctx.createRadialGradient(0, 0, this.radian * 0.95, 0, 0, this.radian * 1.05)
+      grad.addColorStop(0, '#333')
+      grad.addColorStop(0.5, '#fff')
+      grad.addColorStop(1, '#333')
+      this.ctx.strokeStyle = grad
+      this.ctx.lineWidth = this.radian * 0.1
+      this.ctx.stroke()
+
+      //画圆心的黑点
+      this.ctx.beginPath()
+      this.ctx.arc(0, 0, 0.1 * this.radian, 0, 2 * Math.PI)
+      this.ctx.fillStyle = '#333'
+      this.ctx.fill()
+    }
+
+    Watch.prototype.drawNums = function() {
+      this.ctx.font = this.radian * 0.15 + 'px arial'
+      this.ctx.textBaseline = 'middle'
+      this.ctx.textAlign = 'center'
+      for (let num = 1; num < 13; num++) {
+        let angle = num * Math.PI / 6
+        this.ctx.rotate(angle)
+        this.ctx.translate(0, -this.radian * 0.85)
+        this.ctx.rotate(-angle)
+        this.ctx.fillText(num.toString(), 0, 0)
+        this.ctx.rotate(angle)
+        this.ctx.translate(0, this.radian * 0.85)
+        this.ctx.rotate(-angle)
+      }
+    }
+
+    Watch.prototype.drawTime = function() {
+      let now = new Date()
+      let hours = now.getHours()
+      let minutes = now.getMinutes()
+      let seconds = now.getSeconds()
+
+      hours = hours % 12
+      hoursAngle = (hours * Math.PI / 6) + (minutes * Math.PI / 6 / 60) + (seconds * Math.PI / 6 / 60 / 60)
+      minutesAngle = (minutes * Math.PI / 30) + (seconds * Math.PI / 30 / 60)
+      secondsAngle = (seconds * Math.PI / 30)
+
+      //画指针
+      this.drawHand(hoursAngle, this.radian * 0.5, this.radian * 0.07)
+      this.drawHand(minutesAngle, this.radian * 0.7, this.radian * 0.05)
+      this.drawHand(secondsAngle, this.radian * 0.9, this.radian * 0.02)
+    }
+
+    Watch.prototype.drawHand = function(angle, legnth, width) {
+      this.ctx.beginPath()
+      this.ctx.lineWidth = width
+      this.ctx.lineCap = 'round'
+      this.ctx.moveTo(0, 0)
+      this.ctx.rotate(angle)
+      this.ctx.lineTo(0, -length)
+      this.ctx.stroke()
+      this.ctx.rotate(-angle)
+    }
+
+
+    new Watch(200, 200, 150)
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>animation_canvas</title>
+</head>
+
+<body>
+  <header>按上下左右键控制</header>
+  <canvas width="1000" height="600" style="border: 1px solid #ccc;"></canvas>
+  <script>
+    //构造函数===============================================
+    let Person = function(step, ctx) {
+      //工具箱
+      this.ctx = ctx || document.querySelector('canvas').getContext('2d')
+
+      //画布跨高
+      this.width = this.ctx.canvas.width
+      this.height = this.ctx.canvas.height
+      //画布中心
+      this.x0 = this.width / 2
+      this.y0 = this.height / 2
+
+      //人物每一步的大小
+      this.step = step
+      //人物的第几个动作
+      this.index = 0
+
+      //直接初始化
+      this.init()
+    }
+
+    //原型方法=================================================
+    Person.prototype.init = function() {
+      let that = this
+
+      this.loadImage(function() {
+        //获取人物的宽高
+        that.personWidth = that.image.width / 4
+        that.personHeight = that.image.height / 4
+
+        //运动函数
+        that.move = function() {}
+
+        //移动的方向
+        that.direction = 0
+
+        //偏移的距离
+        that.stepX = 0
+        that.stepY = 0
+
+        // 将图片画到画布的正中央原地踏步
+        that.animation()
+
+        //键盘控制 上下左右
+        document.onkeydown = function(e) {
+          switch (e.keyCode) {
+            //左
+            case 37:
+              that.direction = 1
+              that.move = function() {
+                that.stepX = that.stepX < -(that.x0 - that.personWidth / 2 - that.step) ? that.stepX : that.stepX - that.step
+              }
+              break
+              //上
+            case 38:
+              that.direction = 3
+              that.move = function() {
+                that.stepY = that.stepY < -(that.y0 - that.personHeight / 2 - that.step) ? that.stepY : that.stepY - that.step
+              }
+              break
+              //右
+            case 39:
+              that.direction = 2
+              that.move = function() {
+                that.stepX = that.stepX > (that.x0 - that.personWidth / 2 - that.step) ? that.stepX : that.stepX + that.step
+              }
+              break
+              //下
+            case 40:
+              that.direction = 0
+              that.move = function() {
+                that.stepY = that.stepY > (that.y0 - that.personHeight / 2 - that.step) ? that.stepY : that.stepY + that.step
+              }
+              break
+            default:
+              break
+          }
+
+          that.animation()
+        }
+
+      })
+    }
+
+    //加载图片==执行回掉函数
+    Person.prototype.loadImage = function(callback) {
+      //加载图片
+      this.image = new Image()
+      //加载完图片后将图片放在画布正中间
+      this.image.onload = function() {
+        //如果回掉函数存在则调用毁掉函数
+        callback && callback(this.image)
+      }
+      this.image.src = 'animation.png'
+    }
+
+    //图片运动函数
+    Person.prototype.animation = function() {
+      clearInterval(this.timeId)
+      let that = this
+      this.timeId = setInterval(function() {
+        //首先清除画布
+        that.ctx.clearRect(0, 0, that.width, that.height)
+
+        //循环走动
+        if (that.index > 3) {
+          that.index = 0
+        }
+
+        //将图片画到画布上
+        that.ctx.drawImage(
+          that.image,
+          that.index * that.personWidth, //运动到那一张图了
+          that.direction * that.personHeight, //朝着哪个方向运动
+          that.personWidth,
+          that.personHeight,
+          that.x0 - that.personWidth / 2 + that.stepX, //向X方向运动了多长的距离
+          that.y0 - that.personHeight / 2 + that.stepY, //向y方向运动了多长的距离
+          that.personWidth,
+          that.personHeight)
+
+        that.index++
+          that.move()
+      }, 150)
+    }
+
+    //实例化对象=========================================
+    new Person(10)
+  </script>
+</body>
+
+</html>

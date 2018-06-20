@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>面向对象绘制折线图</title>
+</head>
+
+<body>
+  <canvas width="600" height="400" style="border:1px solid #aaa;"></canvas>
+  <script>
+    //定义构造函数 ===================================================
+    let LineChart = function(gridSize, spaceNum, arrLength, dotSize, ctx) {
+      //工具箱
+      this.ctx = ctx || document.querySelector('canvas').getContext('2d')
+
+      //画布的宽
+      this.width = this.ctx.canvas.width
+      //画布的高
+      this.height = this.ctx.canvas.height
+      //画布中的网格大小
+      this.gridSize = gridSize
+
+      //坐标系的位置--空白处
+      this.space = spaceNum * gridSize
+      //得到原点坐标
+      this.x0 = this.space
+      this.y0 = this.height - this.space
+      //箭头大小
+      this.arrLength = arrLength
+
+      //点的大小
+      this.dotSize = dotSize
+    }
+
+    //添加方法 ============================================
+    //初始化
+    LineChart.prototype.init = function(data) {
+      this.drawGrid()
+      this.drawCoodinate()
+      this.drawDots(data)
+    }
+
+    //==============
+    //画网格
+    LineChart.prototype.drawGrid = function() {
+      let canvasX = Math.floor(this.width / this.gridSize)
+      let canvasY = Math.floor(this.height / this.gridSize)
+      this.ctx.strokeStyle = '#eee'
+
+      //画x轴方向的格子
+      for (let i = 0; i < canvasY; i++) {
+        this.ctx.beginPath()
+        this.ctx.moveTo(0, i * this.gridSize - 0.5)
+        this.ctx.lineTo(this.width, i * this.gridSize - 0.5)
+        this.ctx.stroke()
+      }
+
+      //画y轴方向的格子
+      for (let i = 0; i < canvasX; i++) {
+        this.ctx.beginPath()
+        this.ctx.moveTo(i * this.gridSize - 0.5, 0)
+        this.ctx.lineTo(i * this.gridSize - 0.5, this.height)
+        this.ctx.stroke()
+      }
+    }
+
+    //=============
+    //画坐标
+    LineChart.prototype.drawCoodinate = function() {
+      this.ctx.strokeStyle = '#000'
+      //x轴坐标
+      this.ctx.beginPath()
+      this.ctx.moveTo(this.x0, this.y0 - 0.5)
+      this.ctx.lineTo(this.width - this.space, this.y0 - 0.5)
+      this.ctx.stroke()
+
+      //箭头
+      this.ctx.lineTo(this.width - this.space - this.arrLength - 0.5, this.y0 + this.arrLength / 4 - 0.5)
+      this.ctx.lineTo(this.width - this.space - this.arrLength - 0.5, this.y0 - this.arrLength / 4 - 0.5)
+      this.ctx.lineTo(this.width - this.space, this.y0 - 0.5)
+      this.ctx.fill()
+
+      //y轴坐标
+      this.ctx.beginPath()
+      this.ctx.moveTo(this.x0 - 0.5, this.y0)
+      this.ctx.lineTo(this.x0 - 0.5, this.space)
+      this.ctx.stroke()
+
+      //箭头
+      this.ctx.lineTo(this.x0 - this.arrLength / 4, this.space + this.arrLength - 0.5)
+      this.ctx.lineTo(this.x0 + this.arrLength / 4, this.space + this.arrLength - 0.5)
+      this.ctx.lineTo(this.x0 - 0.5, this.space)
+      this.ctx.fill()
+    }
+
+    //==============
+    //描点
+    LineChart.prototype.drawDots = function(data) {
+
+      //记录this
+      let that = this
+      //记录上一个点的坐标
+      let prevCanvasX = that.x0
+      let prevCanvasY = that.y0
+
+
+      data.forEach(function(item, i) {
+
+        //转换成画布的横纵坐标
+        let canvasX = item.x + that.space
+        let canvasY = that.height - that.space - item.y
+
+        //画点
+        that.ctx.beginPath()
+        that.ctx.moveTo(canvasX - that.dotSize / 2, canvasY - that.dotSize / 2)
+        that.ctx.lineTo(canvasX + that.dotSize / 2, canvasY - that.dotSize / 2)
+        that.ctx.lineTo(canvasX + that.dotSize / 2, canvasY + that.dotSize / 2)
+        that.ctx.lineTo(canvasX - that.dotSize / 2, canvasY + that.dotSize / 2)
+        that.ctx.closePath()
+        that.ctx.fill()
+
+        //将点连成线
+        that.ctx.beginPath()
+        that.ctx.moveTo(prevCanvasX, prevCanvasY)
+        that.ctx.lineTo(canvasX, canvasY)
+        that.ctx.stroke()
+
+        prevCanvasX = canvasX
+        prevCanvasY = canvasY
+
+      })
+    }
+
+    //初始数据 ======================================
+    let data = [{
+      x: 100,
+      y: 100
+    }, {
+      x: 200,
+      y: 150
+    }, {
+      x: 300,
+      y: 350
+    }, {
+      x: 400,
+      y: 250
+    }, {
+      x: 500,
+      y: 50
+    }]
+
+    //实例化 ==========================================
+    let lineChart = new LineChart(10, 2, 12, 10)
+    lineChart.init(data)
+  </script>
+</body>
+
+</html>
