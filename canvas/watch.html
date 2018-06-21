@@ -11,6 +11,7 @@
 <body>
   <canvas width="600" height="400" style="background-color: #555;"></canvas>
   <script>
+  //构造函数============================================
     let Watch = function(x0, y0, radian, ctx) {
       this.ctx = ctx || document.querySelector('canvas').getContext('2d')
 
@@ -21,23 +22,33 @@
       this.init()
     }
 
+    //原型方法============================================
+    //初始化
     Watch.prototype.init = function() {
+      //固定画钟的圆心
+      this.ctx.translate(this.x0, this.y0)
+
       this.drawFace()
       this.drawNums()
+      this.drawTime()
       setInterval(() => {
+        this.ctx.clearRect(-this.x0, -this.y0, this.ctx.canvas.width, this.ctx.canvas.height)
+        this.drawFace()
+        this.drawNums()
         this.drawTime()
       }, 1000)
     }
 
+    //画钟面
     Watch.prototype.drawFace = function() {
+      this.ctx.beginPath()
+
       //换一个圆的背景
-      this.ctx.translate(this.x0, this.y0)
       this.ctx.arc(0, 0, this.radian, 0, 2 * Math.PI)
       this.ctx.fillStyle = '#fff'
       this.ctx.fill()
 
       //画圆的边框
-      // this.ctx.beginPath()
       let grad = this.ctx.createRadialGradient(0, 0, this.radian * 0.95, 0, 0, this.radian * 1.05)
       grad.addColorStop(0, '#333')
       grad.addColorStop(0.5, '#fff')
@@ -53,22 +64,35 @@
       this.ctx.fill()
     }
 
+    //画钟上面的数字
     Watch.prototype.drawNums = function() {
       this.ctx.font = this.radian * 0.15 + 'px arial'
       this.ctx.textBaseline = 'middle'
       this.ctx.textAlign = 'center'
+
       for (let num = 1; num < 13; num++) {
+        this.ctx.save()
         let angle = num * Math.PI / 6
+
+        //将书写的文字先旋转一定的角度（此时坐标轴也旋转了）
         this.ctx.rotate(angle)
+        //将文字的对齐的点移到一定的位置
         this.ctx.translate(0, -this.radian * 0.85)
+        //将文字摆正
         this.ctx.rotate(-angle)
+
         this.ctx.fillText(num.toString(), 0, 0)
-        this.ctx.rotate(angle)
-        this.ctx.translate(0, this.radian * 0.85)
-        this.ctx.rotate(-angle)
+
+        // //逆操作，使得整个坐标系回到初始状态
+        // this.ctx.rotate(angle)
+        // this.ctx.translate(0, this.radian * 0.85)
+        // this.ctx.rotate(-angle)
+        //以上思路可用save和restore代替
+        this.ctx.restore()
       }
     }
 
+    //获取当地时间
     Watch.prototype.drawTime = function() {
       let now = new Date()
       let hours = now.getHours()
@@ -76,29 +100,31 @@
       let seconds = now.getSeconds()
 
       hours = hours % 12
-      hoursAngle = (hours * Math.PI / 6) + (minutes * Math.PI / 6 / 60) + (seconds * Math.PI / 6 / 60 / 60)
-      minutesAngle = (minutes * Math.PI / 30) + (seconds * Math.PI / 30 / 60)
-      secondsAngle = (seconds * Math.PI / 30)
+      this.hoursAngle = (hours * Math.PI / 6) + (minutes * Math.PI / 6 / 60) + (seconds * Math.PI / 6 / 60 / 60)
+      this.minutesAngle = (minutes * Math.PI / 30) + (seconds * Math.PI / 30 / 60)
+      this.secondsAngle = (seconds * Math.PI / 30)
 
       //画指针
-      this.drawHand(hoursAngle, this.radian * 0.5, this.radian * 0.07)
-      this.drawHand(minutesAngle, this.radian * 0.7, this.radian * 0.05)
-      this.drawHand(secondsAngle, this.radian * 0.9, this.radian * 0.02)
+      this.drawHand(this.hoursAngle, this.radian * 0.4, this.radian * 0.1)
+      this.drawHand(this.minutesAngle, this.radian * 0.65, this.radian * 0.06)
+      this.drawHand(this.secondsAngle, this.radian * 0.85, this.radian * 0.02)
     }
 
-    Watch.prototype.drawHand = function(angle, legnth, width) {
+    //画指针
+    Watch.prototype.drawHand = function(angle, length, width) {
       this.ctx.beginPath()
       this.ctx.lineWidth = width
       this.ctx.lineCap = 'round'
       this.ctx.moveTo(0, 0)
       this.ctx.rotate(angle)
       this.ctx.lineTo(0, -length)
+      this.ctx.strokeStyle = '#333'
       this.ctx.stroke()
       this.ctx.rotate(-angle)
     }
 
-
-    new Watch(200, 200, 150)
+    //实例化============================================
+    new Watch(300, 200, 150)
   </script>
 </body>
 
