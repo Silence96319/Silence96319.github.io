@@ -27,6 +27,8 @@ ol {
 
 a {
   text-decoration: none;
+  /* a链接默认的字体颜色是蓝色的。。。 */
+  color: #333;
 }
 
 input,
